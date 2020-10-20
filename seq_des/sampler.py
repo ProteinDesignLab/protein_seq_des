@@ -128,13 +128,13 @@ class Sampler(object):
         self.n = self.gt_pose.residues.__len__()
 
         # handle symmetry
-        if "tim" in self.pdb:
-            # handle tim case
-            self.n_k = math.ceil((self.n + 1) / self.k) if (self.n + 1) % 2 == 0 else math.ceil((self.n) / self.k)
-        else:
-            self.n_k = self.n // self.k
-            assert self.n % self.k == 0, 'length of protein must be divisible by k for k-fold symm design'
         if self.symmetry:
+            if "tim" in self.pdb:
+                # handle tim case
+                self.n_k = math.ceil((self.n + 1) / self.k) if (self.n + 1) % 2 == 0 else math.ceil((self.n) / self.k)
+            else:
+                self.n_k = self.n // self.k
+                assert self.n % self.k == 0, 'length of protein must be divisible by k for k-fold symm design'
             idx = [[i + j * (self.n_k) for j in range(self.k) if i + j * (self.n_k) < self.n] for i in range(self.n_k)]
             self.symmetry_idx = {}
             for idx_set in idx:
