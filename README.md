@@ -3,7 +3,7 @@
 Code for the algorithm in our paper 
 
 > Namrata Anand-Achim, Raphael R. Eguchi, Alexander Derry, Russ B. Altman, and Possu Huang. "Protein sequence design with a learned potential." bioRxiv (2020).
-> [[biorxiv]](https://www.biorxiv.org/content/10.1101/2020.01.06.895466v1) [[cite]](#citation) [[lab site]](http://www.proteindesign.org)
+> [[biorxiv]](https://www.biorxiv.org/content/10.1101/2020.01.06.895466v2) [[cite]](#citation) [[lab site]](http://www.proteindesign.org)
 
 ![Model design trajectory](imgs/tim.gif)
 
