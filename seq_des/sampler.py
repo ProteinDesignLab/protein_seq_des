@@ -492,12 +492,16 @@ class Sampler(object):
         # anneal temperature
         self.anneal_start_temp = max(self.anneal_start_temp * self.step_rate, self.anneal_final_temp)
 
-    def step(self):
+    def step(self, keep_aas=["H", "K"]):
+        # aas = ["H", "K", "R", "D", "E", "S", "T", "N", "Q", "A", "V", "L", "I", "M", "F", "Y", "W", "P", "G", "C"]
         # random idx selection, draw sample
         idx = self.blocks[np.random.choice(self.n_blocks)]
         if not self.rotamer_repack:
-            # sample new residue indices/ residues
-            res, idx, res_idx = self.sample(self.logits, idx)
+            sele = torch.zeros(20, 1) 
+            for aa in keep_aas:
+                sele[common.atoms.aa_map_inv[aa]] = 1
+            sele = sele.transpose(0, 1).repeat(self.logits.size(0), 1)
+            res, idx, res_idx = self.sample(sele * self.logits, idx)
         else:
             # residue idx is fixed (identity fixed) for rotamer repacking
             res = [self.gt_seq[i] for i in idx]
