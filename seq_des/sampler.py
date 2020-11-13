@@ -219,7 +219,7 @@ class Sampler(object):
                         np.arange(len(res_label)), res_label, self.chi_feat_temp, bb_only=1,
                     )
                 res = [common.atoms.label_res_single_dict[k] for k in res_idx]
-                self.pose = self.set_rotamer(self.pose, res, idx, self.chi_1, self.chi_2, self.chi_3, self.chi_4,)
+                self.pose = self.set_rotamer(self.pose, res, idx, self.chi_1, self.chi_2, self.chi_3, self.chi_4, fixed_idx=self.fixed_idx, var_idx=self.var_idx)
 
             # Randomize sequence/rotamers
             else:
@@ -424,12 +424,16 @@ class Sampler(object):
                 res_idx_symm,
             )
 
-    def set_rotamer(self, pose, res, idx, chi_1, chi_2, chi_3, chi_4):
+    def set_rotamer(self, pose, res, idx, chi_1, chi_2, chi_3, chi_4, fixed_idx=[], var_idx=[]):
         # res -- residue type ID
         # idx -- residue index on BB (0-indexed)
         assert len(res) == len(idx)
         assert len(idx) == len(chi_1), (len(idx), len(chi_1))
         for i, r_idx in enumerate(idx):
+            if len(fixed_idx) > 0 and r_idx in fixed_idx:
+                continue
+            elif len(var_idx) > 0 and r_idx not in var_idx:
+                continue
             res_i = res[i]
             chi_i = common.atoms.chi_dict[common.atoms.aa_inv[res_i]]
             if "chi_1" in chi_i.keys():
@@ -520,7 +524,7 @@ class Sampler(object):
                 self.pose_temp = self.pose
 
             # sample and set center residue rotamer
-            self.pose_temp = self.set_rotamer(self.pose_temp, res, idx, self.chi_1, self.chi_2, self.chi_3, self.chi_4)
+            self.pose_temp = self.set_rotamer(self.pose_temp, res, idx, self.chi_1, self.chi_2, self.chi_3, self.chi_4, fixed_idx=self.fixed_idx, var_idx=self.var_idx)
 
         else:
             # Pyrosetta mutate and rotamer repacking

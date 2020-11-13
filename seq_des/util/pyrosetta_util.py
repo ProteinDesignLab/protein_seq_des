@@ -95,7 +95,9 @@ def mutate_list(pose, idx_list, res_list, pack_radius=5.0, fixed_idx=[], var_idx
     assert len(idx_list) == len(res_list), (len(idx_list), len(res_list))
     for i in range(len(idx_list)):
         idx, res = idx_list[i], res_list[i]
-        if idx in fixed_idx:
+        if len(fixed_idx) > 0 and idx in fixed_idx:
+            continue
+        if len(var_idx) > 0 and idx not in var_idx:
             continue
         sequence = pose.sequence()
         pose = mutate(pose, idx, res, pack_radius=pack_radius, fixed_idx=fixed_idx, var_idx=var_idx, repack_rotamers=repack_rotamers)
