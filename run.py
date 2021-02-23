@@ -17,6 +17,8 @@ import glob
 from pyrosetta.rosetta.protocols.simple_filters import BuriedUnsatHbondFilterCreator, PackStatFilterCreator
 from pyrosetta.rosetta.protocols.denovo_design.filters import ExposedHydrophobicsFilterCreator
 
+from tqdm import tqdm
+
 __author__ = 'Namrata Anand-Achim'
 
 
@@ -126,7 +128,7 @@ def main():
 
     # run design
     with torch.no_grad():
-        for i in range(1, int(args.n_iters)):
+        for i in tqdm(range(1, int(args.n_iters)), desc='running design'):
 
             # step
             design_sampler.step()
