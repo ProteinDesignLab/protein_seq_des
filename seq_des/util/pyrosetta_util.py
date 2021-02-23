@@ -137,8 +137,8 @@ def restrict_non_nbrs_from_repacking(pose, res, task, pack_radius, repack_rotame
         # only pack the mutating residue and any within the pack_radius
         if i == res:
             # comment out this block to reproduce biorxiv results
-            if not repack_rotamers:
-               task.nonconst_residue_task(i).prevent_repacking()
+            #if not repack_rotamers:
+            #   task.nonconst_residue_task(i).prevent_repacking()
             continue
         if center.distance(representative_coordinate(i)) > pack_radius:
             task.nonconst_residue_task(i).prevent_repacking()
