@@ -3,7 +3,7 @@ import common.atoms
 
 from rosetta import *
 from pyrosetta import *
-init("-ex1 -ex2 -constant_seed")
+init("-mute basic -mute core -mute protocols  -ex1 -ex2 -constant_seed")
 
 #from pyrosetta.toolbox import pose_from_rcsb, cleanATOM  # , mutate_residue
 from pyrosetta.rosetta.protocols.simple_moves import MutateResidue
