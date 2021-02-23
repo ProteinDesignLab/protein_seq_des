@@ -396,7 +396,7 @@ class Sampler(object):
             symm_idx_ptr = []
             count = 0
             for i, idx_i in enumerate(idx):
-                symm_idx_ptr.append([count + j for j in range(len(self.symmetry_idx[idx_i]))])  # extend([i for j in self.symmetry_idx[idx_i]])
+                symm_idx_ptr.append([count + j for j in range(len(self.symmetry_idx[idx_i]))])  
                 count = count + len(self.symmetry_idx[idx_i])
 
             # get chi feature vector
@@ -407,7 +407,8 @@ class Sampler(object):
             chi_1_real, chi_1_onehot = sampler_util.get_symm_chi(chi_1_pred_out, symm_idx_ptr, use_cuda=self.use_cuda)
 
             chi_2_pred_out = sampler_util.get_chi_2_logits(curr_models, chi_feat, chi_1_onehot)
-            chi_2_real, chi_2_onehot = sampler_util.get_symm_chi(chi_2_pred_out, symm_idx_ptr, use_cuda=self.use_cuda)
+            # set debug=True below to reproduce biorxiv results. Sample uniformly 2x from predicted rotamer bin. Small bug for TIM-barrel symmetry experiments for chi_2.  
+            chi_2_real, chi_2_onehot = sampler_util.get_symm_chi(chi_2_pred_out, symm_idx_ptr, use_cuda=self.use_cuda, debug=True)
 
             chi_3_pred_out = sampler_util.get_chi_3_logits(curr_models, chi_feat, chi_1_onehot, chi_2_onehot)
             chi_3_real, chi_3_onehot = sampler_util.get_symm_chi(chi_3_pred_out, symm_idx_ptr, use_cuda=self.use_cuda)
