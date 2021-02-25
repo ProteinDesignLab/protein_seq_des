@@ -3,7 +3,7 @@ import common.atoms
 
 from rosetta import *
 from pyrosetta import *
-init("-ex1 -ex2 -constant_seed")
+init("-mute basic -mute core -mute protocols  -ex1 -ex2 -constant_seed")
 
 #from pyrosetta.toolbox import pose_from_rcsb, cleanATOM  # , mutate_residue
 from pyrosetta.rosetta.protocols.simple_moves import MutateResidue
@@ -95,7 +95,9 @@ def mutate_list(pose, idx_list, res_list, pack_radius=5.0, fixed_idx=[], var_idx
     assert len(idx_list) == len(res_list), (len(idx_list), len(res_list))
     for i in range(len(idx_list)):
         idx, res = idx_list[i], res_list[i]
-        if idx in fixed_idx:
+        if len(fixed_idx) > 0 and idx in fixed_idx:
+            continue
+        if len(var_idx) > 0 and idx not in var_idx:
             continue
         sequence = pose.sequence()
         pose = mutate(pose, idx, res, pack_radius=pack_radius, fixed_idx=fixed_idx, var_idx=var_idx, repack_rotamers=repack_rotamers)
@@ -135,8 +137,8 @@ def restrict_non_nbrs_from_repacking(pose, res, task, pack_radius, repack_rotame
         # only pack the mutating residue and any within the pack_radius
         if i == res:
             # comment out this block to reproduce biorxiv results
-            if not repack_rotamers:
-               task.nonconst_residue_task(i).prevent_repacking()
+            #if not repack_rotamers:
+            #   task.nonconst_residue_task(i).prevent_repacking()
             continue
         if center.distance(representative_coordinate(i)) > pack_radius:
             task.nonconst_residue_task(i).prevent_repacking()

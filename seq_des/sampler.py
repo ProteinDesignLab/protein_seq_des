@@ -128,13 +128,13 @@ class Sampler(object):
         self.n = self.gt_pose.residues.__len__()
 
         # handle symmetry
-        if "tim" in self.pdb:
-            # handle tim case
-            self.n_k = math.ceil((self.n + 1) / self.k) if (self.n + 1) % 2 == 0 else math.ceil((self.n) / self.k)
-        else:
-            self.n_k = self.n // self.k
-            assert self.n % self.k == 0, 'length of protein must be divisible by k for k-fold symm design'
         if self.symmetry:
+            if "tim" in self.pdb:
+                # handle tim case
+                self.n_k = math.ceil((self.n + 1) / self.k) if (self.n + 1) % 2 == 0 else math.ceil((self.n) / self.k)
+            else:
+                self.n_k = self.n // self.k
+                assert self.n % self.k == 0, 'length of protein must be divisible by k for k-fold symm design'
             idx = [[i + j * (self.n_k) for j in range(self.k) if i + j * (self.n_k) < self.n] for i in range(self.n_k)]
             self.symmetry_idx = {}
             for idx_set in idx:
@@ -219,7 +219,7 @@ class Sampler(object):
                         np.arange(len(res_label)), res_label, self.chi_feat_temp, bb_only=1,
                     )
                 res = [common.atoms.label_res_single_dict[k] for k in res_idx]
-                self.pose = self.set_rotamer(self.pose, res, idx, self.chi_1, self.chi_2, self.chi_3, self.chi_4,)
+                self.pose = self.set_rotamer(self.pose, res, idx, self.chi_1, self.chi_2, self.chi_3, self.chi_4, fixed_idx=self.fixed_idx, var_idx=self.var_idx)
 
             # Randomize sequence/rotamers
             else:
@@ -396,7 +396,7 @@ class Sampler(object):
             symm_idx_ptr = []
             count = 0
             for i, idx_i in enumerate(idx):
-                symm_idx_ptr.append([count + j for j in range(len(self.symmetry_idx[idx_i]))])  # extend([i for j in self.symmetry_idx[idx_i]])
+                symm_idx_ptr.append([count + j for j in range(len(self.symmetry_idx[idx_i]))])  
                 count = count + len(self.symmetry_idx[idx_i])
 
             # get chi feature vector
@@ -407,7 +407,8 @@ class Sampler(object):
             chi_1_real, chi_1_onehot = sampler_util.get_symm_chi(chi_1_pred_out, symm_idx_ptr, use_cuda=self.use_cuda)
 
             chi_2_pred_out = sampler_util.get_chi_2_logits(curr_models, chi_feat, chi_1_onehot)
-            chi_2_real, chi_2_onehot = sampler_util.get_symm_chi(chi_2_pred_out, symm_idx_ptr, use_cuda=self.use_cuda)
+            # set debug=True below to reproduce biorxiv results. Sample uniformly 2x from predicted rotamer bin. Small bug for TIM-barrel symmetry experiments for chi_2.  
+            chi_2_real, chi_2_onehot = sampler_util.get_symm_chi(chi_2_pred_out, symm_idx_ptr, use_cuda=self.use_cuda, debug=True)
 
             chi_3_pred_out = sampler_util.get_chi_3_logits(curr_models, chi_feat, chi_1_onehot, chi_2_onehot)
             chi_3_real, chi_3_onehot = sampler_util.get_symm_chi(chi_3_pred_out, symm_idx_ptr, use_cuda=self.use_cuda)
@@ -424,12 +425,16 @@ class Sampler(object):
                 res_idx_symm,
             )
 
-    def set_rotamer(self, pose, res, idx, chi_1, chi_2, chi_3, chi_4):
+    def set_rotamer(self, pose, res, idx, chi_1, chi_2, chi_3, chi_4, fixed_idx=[], var_idx=[]):
         # res -- residue type ID
         # idx -- residue index on BB (0-indexed)
         assert len(res) == len(idx)
         assert len(idx) == len(chi_1), (len(idx), len(chi_1))
         for i, r_idx in enumerate(idx):
+            if len(fixed_idx) > 0 and r_idx in fixed_idx:
+                continue
+            elif len(var_idx) > 0 and r_idx not in var_idx:
+                continue
             res_i = res[i]
             chi_i = common.atoms.chi_dict[common.atoms.aa_inv[res_i]]
             if "chi_1" in chi_i.keys():
@@ -520,7 +525,7 @@ class Sampler(object):
                 self.pose_temp = self.pose
 
             # sample and set center residue rotamer
-            self.pose_temp = self.set_rotamer(self.pose_temp, res, idx, self.chi_1, self.chi_2, self.chi_3, self.chi_4)
+            self.pose_temp = self.set_rotamer(self.pose_temp, res, idx, self.chi_1, self.chi_2, self.chi_3, self.chi_4, fixed_idx=self.fixed_idx, var_idx=self.var_idx)
 
         else:
             # Pyrosetta mutate and rotamer repacking

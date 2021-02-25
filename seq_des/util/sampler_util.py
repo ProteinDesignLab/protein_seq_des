@@ -318,12 +318,16 @@ def sample_chi(chi_logits, use_cuda=True):
     return chi, chi_real, chi_onehot
 
 
-def get_symm_chi(chi_pred_out, symm_idx_ptr, use_cuda=True):
+def get_symm_chi(chi_pred_out, symm_idx_ptr, use_cuda=True, debug=False):
     chi_pred_out_symm = []
     for i, ptr in enumerate(symm_idx_ptr):
         chi_pred_out_symm.append(chi_pred_out[ptr].mean(0)[None])
     chi_pred_out = torch.cat(chi_pred_out_symm, 0)
     chi, chi_real, chi_onehot = sample_chi(chi_pred_out, use_cuda=use_cuda)
+    if debug:
+        # sample uniformly again from predicted bin. small bug for TIM-barrel symmetry experiments. ¯\_(ツ)_/¯
+        chi, chi_real, chi_onehot = sample_chi(chi_pred_out, use_cuda=use_cuda)
+
     chi_real_out = []
     for i, ptr in enumerate(symm_idx_ptr):
         chi_real_out.append([chi_real[i][None] for j in range(len(ptr))])  # , 0))
