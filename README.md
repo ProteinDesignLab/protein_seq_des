@@ -44,7 +44,7 @@ Inputs to the data generation script are .txt files with the domain IDs (see dat
 
 ## Training the models
 
-Pretrained models are available [here](https://drive.google.com/file/d/1X66RLbaA2-qTlJLlG9TI53cao8gaKnEt/view?usp=sharing) but you can also use the available scripts to train from scratch.
+Pretrained models are available [here](https://drive.google.com/file/d/1cHoyeI0H_Jo9bqgFH4z0dfx2s9as9Jp1/view?usp=sharing) but you can also use the available scripts to train from scratch.
 
 To train the baseline model -- residue and autoregressive rotamer prediction conditioned on backbone (BB) atoms only model (no side-chains):
 ```
