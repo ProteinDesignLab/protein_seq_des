@@ -3,13 +3,11 @@
 Code for the algorithm in our paper 
 
 > Namrata Anand-Achim, Raphael R. Eguchi, Alexander Derry, Russ B. Altman, and Possu Huang. "Protein sequence design with a learned potential." bioRxiv (2020).
-> [[biorxiv]](https://www.biorxiv.org/content/10.1101/2020.01.06.895466v2) [[cite]](#citation) [[lab site]](http://www.proteindesign.org)
+> [[biorxiv]](https://www.biorxiv.org/content/10.1101/2020.01.06.895466v1) [[cite]](#citation)
 
 ![Model design trajectory](imgs/tim.gif)
 
-Fully AI design of a four-fold symmetric TIM-barrel
-
-Code written by Namrata Anand-Achim.
+Entirely AI designed four-fold symmetric TIM-barrel
 
 ## Requirements
 
@@ -22,7 +20,46 @@ Code written by Namrata Anand-Achim.
 See [here](https://github.com/nanand2/protein_seq_des/blob/master/SETUP.md) for set-up instructions on Ubuntu 18.04 with Miniconda, Python 3.7, PyTorch 1.1.0, CUDA 9.0. 
 
 
-## Running the code
+## Design
+
+If you'd like to use the pre-trained models to run design, jump to [[this section]](#running-design)
+
+## Generating data
+Data is available [here](https://console.cloud.google.com/storage/browser/seq-des-data) on GCP. Note you will need to authenticate to access the data and link a billing account as well to pay for the download.
+
+If you'd like to generate the dataset or change the underlying data run the following commands.
+
+To load and save coordinates for the backbone (BB) only model:
+```
+python load_and_save_bb_coords.py --save_dir PATH_TO_SAVE_DATA --pdb_dir PATH_TO_PDB_FILES --log_dir PATH_TO_LOG_DIR --txt PATH_TO_DOMAIN_TXT_FILE
+```
+
+To load and save coordinates for the main model:
+```
+python load_and_save_coords.py --save_dir PATH_TO_SAVE_DATA --pdb_dir PATH_TO_PDB_FILES --log_dir PATH_TO_LOG_DIR --txt PATH_TO_DOMAIN_TXT_FILE
+```
+
+Inputs to the data generation script are .txt files with the domain IDs (see data/train_domains_s95.txt and data/test_domain_s95.txt). If you don't have PDB files downloaded, the script will download those and save it to pdb_dir.
+
+
+## Training the models
+
+Pretrained models are available [here](https://drive.google.com/file/d/1X66RLbaA2-qTlJLlG9TI53cao8gaKnEt/view?usp=sharing) but you can also use the available scripts to train from scratch.
+
+To train the baseline model -- residue and autoregressive rotamer prediction conditioned on backbone (BB) atoms only model (no side-chains):
+```
+python train_autoreg_chi_baseline.py --batchSize 4096 --workers 12 --lr 1.5e-4 --validation_frequency 100 --save_frequency 1000 --log_dir PATH_TO_LOG_DIR --data_dir PATH_TO_DATA
+```
+
+To train the main model -- residue and autoregressive rotamer prediction conditioned on neighboring side-chains:
+```
+python train_autoreg_chi.py --batchSize 2048 --workers 12 --lr 7.5e-5 --validation_frequency 200 --save_frequency 2000 --log_dir PATH_TO_LOG_DIR --data_dir PATH_TO_DATA
+```
+Note that training was originally done across 8 V100 GPUs with DataParallel mode.
+
+
+  
+## Running design
 
 To run a design trajectory, specify starting backbone with an input PDB. 
 
@@ -60,7 +97,6 @@ tensorboard --log_dir='./logs'
 ```
 
 Note that the input PDB sequence and rotamers are considered 'ground-truth' for sequence and rotamer recovery metrics.
-
 
 
 
@@ -148,10 +184,9 @@ If you find our work relevant to your research, please cite:
 ```
 @article{anand2020protein,
   title={Protein sequence design with a learned potential},
-  author={Anand-Achim, Namrata and Eguchi, Raphael Ryuichi and Derry, Alexander and Altman, Russ B and Huang, Possu},
+  author={Anand, Namrata and Eguchi, Raphael Ryuichi and Derry, Alexander and Altman, Russ B and Huang, Possu},
   journal={bioRxiv},
   year={2020},
   publisher={Cold Spring Harbor Laboratory}
 }
 ```
-
