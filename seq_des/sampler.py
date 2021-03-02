@@ -189,7 +189,6 @@ class Sampler(object):
                     self.init_models, self.pose, bb_only=1, log_path=self.log.log_path, include_rotamer_probs=1, use_cuda=self.use_cuda,
                 )
                 
-
                 # set sequence
                 if not self.rotamer_repack:
                     # sample res from logits

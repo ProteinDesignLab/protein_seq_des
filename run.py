@@ -145,7 +145,7 @@ def main():
                 best_rosetta_energy = design_sampler.rosetta_energy
 
             # save intermediate models -- comment out if desired
-            if i % args.save_rate == 0:
+            if (i==1) or (i % args.save_rate == 0) or (i == args.n_iters - 1):
                 design_sampler.pose.dump_pdb(log.log_path + "/" + "curr_%s_%s.pdb" % (i, log.ts))
 
             log.advance_iteration()
