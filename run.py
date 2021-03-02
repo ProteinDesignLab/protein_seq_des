@@ -134,7 +134,7 @@ def main():
             design_sampler.step()
 
             # logging
-            #log_metrics(args=args, log=log, iteration=i, design_sampler=design_sampler)
+            log_metrics(args=args, log=log, iteration=i, design_sampler=design_sampler)
 
             if design_sampler.log_p_mean < best_energy:
                 design_sampler.pose.dump_pdb(log.log_path + "/" + "curr_best_log_p_%s.pdb" % log.ts)
