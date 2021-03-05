@@ -20,7 +20,7 @@ class RunManager(object):
         self.parser.add_argument("--ngpu", type=int, default=1, help="num gpus to parallelize over")
 
         self.parser.add_argument("--nf", type=int, default=64, help="base number of filters")
-        self.parser.add_argument("--txt", type=str, default="data/train_domains_s95.txt", help="default txt input file")
+        self.parser.add_argument("--txt", type=str, default="txt/train_domains_s95.txt", help="default txt input file")
 
         self.parser.add_argument("--epochs", type=int, default=100, help="enables cuda")
         self.parser.add_argument("--lr", type=float, default=1e-4, help="learning rate")
