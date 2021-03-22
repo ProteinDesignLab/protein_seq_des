@@ -28,7 +28,7 @@ c = len(common.atoms.atoms)
 
 
 def test(
-    model, gen, dataloader, criterion, chi_1_criterion, chi_2_criterion, chi_3_criterion, chi_4_criterion, max_it=1e6, desc="test", device=0, batch_size=64, n_iters=500, k=3, use_cuda=True,
+    model, gen, dataloader, criterion, chi_1_criterion, chi_2_criterion, chi_3_criterion, chi_4_criterion, max_it=1e6, desc="test", batch_size=64, n_iters=500, k=3, use_cuda=True,
 ):
     n_iters = min(max_it, n_iters)
     model = model.eval()
@@ -101,8 +101,12 @@ def step(model, out, criterion, chi_1_criterion, chi_2_criterion, chi_3_criterio
     (bs_idx, x_atom, x_bb, x_b, y_b, z_b, x_res_type, y, chi_angles_real, chi_angles,) = out
 
     bs = len(bs_idx)
-    output_atom = torch.zeros((bs, c + 1, n + 2, n + 2, n + 2)).cuda()
-    output_atom[bs_idx, x_atom, x_b, y_b, z_b] = 1  # atom type
+    output_atom = torch.zeros((bs, c + 1, n + 2, n + 2, n + 2))
+    output_atom[bs_idx, x_atom, x_b, y_b, z_b] = 1 
+
+    if use_cuda:
+        output_atom = output_atom.cuda()
+
     X = output_atom[:, :c, 1:-1, 1:-1, 1:-1]
 
     if X is None:
@@ -190,7 +194,6 @@ def main():
     log = manager.log
 
     use_cuda = torch.cuda.is_available() and args.cuda
-    device = torch.device("cuda:0" if use_cuda else "cpu")
 
     # set up model
     model = models.seqPred(nic=len(common.atoms.atoms), nf=args.nf, momentum=args.momentum)
@@ -199,10 +202,9 @@ def main():
         model.cuda()
     else:
         print("Training model on CPU")
-    print(model)
 
     # parallelize over available GPUs
-    if torch.cuda.device_count() > 1:
+    if torch.cuda.device_count() > 1 and args.cuda:
         print("using", torch.cuda.device_count(), "GPUs")
         model = nn.DataParallel(model)
 
@@ -250,12 +252,15 @@ def main():
     model.train()
     gen = iter(train_dataloader)
     test_gen = iter(test_dataloader)
-    bs = torch.cuda.device_count() * args.batchSize
-    output_atom = torch.zeros((bs, c + 1, n + 2, n + 2, n + 2)).cuda()
-    y_onehot = torch.FloatTensor(bs, 20).cuda()
-    chi_1_onehot = torch.FloatTensor(bs, len(datasets.CHI_BINS)).cuda()
-    chi_2_onehot = torch.FloatTensor(bs, len(datasets.CHI_BINS)).cuda()
-    chi_3_onehot = torch.FloatTensor(bs, len(datasets.CHI_BINS)).cuda()
+    bs = args.batchSize
+    output_atom = torch.zeros((bs, c + 1, n + 2, n + 2, n + 2))
+    y_onehot = torch.FloatTensor(bs, 20)
+    chi_1_onehot = torch.FloatTensor(bs, len(datasets.CHI_BINS))
+    chi_2_onehot = torch.FloatTensor(bs, len(datasets.CHI_BINS))
+    chi_3_onehot = torch.FloatTensor(bs, len(datasets.CHI_BINS))
+
+    if use_cuda:
+        output_atom, y_onehot, chi_1_onehot, chi_2_onehot, chi_3_onehot = map(lambda x: x.cuda(), [output_atom, y_onehot, chi_1_onehot, chi_2_onehot, chi_3_onehot])
 
     for epoch in range(args.epochs):
         for it in tqdm(range(len(train_dataloader)), desc="training epoch %0.2d" % epoch):
@@ -330,7 +335,7 @@ def main():
             if it % validation_frequency == 0 or it == len(train_dataloader) - 1:
 
                 if it > 0:
-                    if torch.cuda.device_count() > 1:
+                    if torch.cuda.device_count() > 1 and args.cuda:
                         torch.save(
                             model.module.state_dict(), log.log_path + "/seq_chi_pred_baseline_curr_weights.pt",
                         )
@@ -344,7 +349,7 @@ def main():
 
                 # NOTE -- saving models for each validation step
                 if it > 0 and (it % save_frequency == 0 or it == len(train_dataloader) - 1):
-                    if torch.cuda.device_count() > 1:
+                    if torch.cuda.device_count() > 1 and args.cuda:
                         torch.save(
                             model.module.state_dict(), log.log_path + "/seq_chi_pred_baseline_epoch_%0.3d_%s_weights.pt" % (epoch, it),
                         )
@@ -372,7 +377,6 @@ def main():
                     max_it=len(test_dataloader),
                     n_iters=min(10, len(test_dataloader)),
                     desc="test",
-                    device=device,
                     batch_size=args.batchSize,
                     use_cuda=use_cuda,
                 )
