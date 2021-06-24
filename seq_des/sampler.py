@@ -62,6 +62,8 @@ class Sampler(object):
         self.step_rate = args.step_rate
         self.accept_prob = 1
 
+        self.resfile = args.resfile
+
         # load fixed idx if applicable
         if args.fixed_idx != "":
             # assert not self.symmetry, 'fixed idx not supported in symmetry mode'
@@ -327,6 +329,33 @@ class Sampler(object):
         else:
             self.chi_error = 0
 
+    def read_resfile(self):
+        # read resfile and return a dictionary of constraints for each residue id
+        constraints = {}
+        with open(self.resfile, "r") as f:
+            # iterate over the lines and extract arguments (residue id, commans)
+            for line in f:
+                args = line.split()
+                try:
+                    args[0] = int(args[0])
+                except ValueError:
+                    raise ValueError("Invalid resfile (first argument must be an integer)")
+                constraints[args[0]] = args[1]
+        return constraints
+
+    def enforce_resfile(self, logits, idx):
+        # enforce resfile constraints
+        constraints = self.read_resfile()
+        # iterate over all residues and check if they're in the constraints
+        for i in idx:
+            if i in constraints.keys():
+                command = constraints[i]
+                print("The command for residue at id {} is {}".format(i, command))
+                for aa in common.atoms.resfile_commands[command]:
+                    print("Updating residue at id #{} at amino acid #{}".format(i, aa))
+                    logits[i, aa] = torch.min(logits[i])
+        return logits
+
     def enforce_constraints(self, logits, idx):
         # enforce idx-wise constraints
         if self.no_cys:
@@ -459,6 +488,9 @@ class Sampler(object):
         idx_out = []
         res = []
         assert len(res_idx) == len(idx), (len(idx), len(res_idx))
+
+        if self.resfile:
+            logits = self.enforce_resfile(logits, idx)
 
         for k in list(res_idx):
             res.append(common.atoms.label_res_single_dict[k])

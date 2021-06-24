@@ -261,3 +261,11 @@ label_res_single_dict = {
     18: "G",
     19: "C",
 }
+# list of resfile commands with amino acids that are restricted
+resfile_commands = {
+    "ALLAA": [],
+    "ALLAAwc": [],
+    "ALLAAxc": [19],
+    "POLAR": [0, 1, 2, 3, 4, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
+    "APOLAR": [5, 6, 7, 8],
+}

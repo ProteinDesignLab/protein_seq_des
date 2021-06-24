@@ -135,6 +135,8 @@ class RunManager(object):
             help="Path to txt file listing pose indices that should NOT be designed/packed, all other side-chains will be designed/packed. 0-indexed",
         )
 
+        self.parser.add_argument("--resfile", type=str, default="", help="Specify path to a resfile to enforce constraints on particular residues")
+
         # optimization / sampling parameters
         self.parser.add_argument(
             "--anneal",
