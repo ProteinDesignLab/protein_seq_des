@@ -261,11 +261,11 @@ label_res_single_dict = {
     18: "G",
     19: "C",
 }
-# list of resfile commands with amino acids that are restricted
+# dictionary of resfile commands where values are sets of amino acids restricted by their commands
 resfile_commands = {
-    "ALLAA": [],
-    "ALLAAwc": [],
-    "ALLAAxc": [19],
-    "POLAR": [0, 1, 2, 3, 4, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
-    "APOLAR": [5, 6, 7, 8],
+    "ALLAA": {},
+    "ALLAAwc": {},
+    "ALLAAxc": {'C'},
+    "POLAR": {'P', 'M', 'Y', 'V', 'F', 'L', 'I', 'A', 'C', 'W', 'G'},
+    "APOLAR": {'E', 'H', 'K', 'N', 'R', 'Q', 'D', 'S', 'T'},
 }

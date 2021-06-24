@@ -346,14 +346,12 @@ class Sampler(object):
     def enforce_resfile(self, logits, idx):
         # enforce resfile constraints
         constraints = self.read_resfile()
-        # iterate over all residues and check if they're in the constraints
+        # iterate over all residues and check if they're to be constrained
         for i in idx:
             if i in constraints.keys():
                 command = constraints[i]
-                print("The command for residue at id {} is {}".format(i, command))
                 for aa in common.atoms.resfile_commands[command]:
-                    print("Updating residue at id #{} at amino acid #{}".format(i, aa))
-                    logits[i, aa] = torch.min(logits[i])
+                    logits[i, common.atoms.aa_map_inv[aa]] = torch.min(logits[i])
         return logits
 
     def enforce_constraints(self, logits, idx):
@@ -483,14 +481,13 @@ class Sampler(object):
     def sample(self, logits, idx):
         # sample residue from model conditional prob distribution at idx with current logits
         logits = self.enforce_constraints(logits, idx) 
+        if self.resfile:
+            logits = self.enforce_resfile(logits, idx)
         dist = Categorical(logits=logits[idx])
         res_idx = dist.sample().cpu().data.numpy()
         idx_out = []
         res = []
         assert len(res_idx) == len(idx), (len(idx), len(res_idx))
-
-        if self.resfile:
-            logits = self.enforce_resfile(logits, idx)
 
         for k in list(res_idx):
             res.append(common.atoms.label_res_single_dict[k])
