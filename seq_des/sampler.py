@@ -350,8 +350,10 @@ class Sampler(object):
         for i in idx:
             if i in constraints.keys():
                 command = constraints[i]
-                for aa in common.atoms.resfile_commands[command]:
-                    logits[i, common.atoms.aa_map_inv[aa]] = torch.min(logits[i])
+                # set of amino acids to restrict in the tensor
+                aa_to_restrict = common.atoms.resfile_commands["ALLAAwc"] - common.atoms.resfile_commands[command]
+                for aa in aa_to_restrict:
+                    logits[i, common.atoms.aa_map_inv[aa]] = 0
         return logits
 
     def enforce_constraints(self, logits, idx):
@@ -480,7 +482,8 @@ class Sampler(object):
 
     def sample(self, logits, idx):
         # sample residue from model conditional prob distribution at idx with current logits
-        logits = self.enforce_constraints(logits, idx) 
+        logits = self.enforce_constraints(logits, idx)
+        # updated logits if resfile is present
         if self.resfile:
             logits = self.enforce_resfile(logits, idx)
         dist = Categorical(logits=logits[idx])

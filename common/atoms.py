@@ -261,11 +261,11 @@ label_res_single_dict = {
     18: "G",
     19: "C",
 }
-# dictionary of resfile commands where values are sets of amino acids restricted by their commands
+# resfile commands where values are amino acids allowed by that command 
 resfile_commands = {
-    "ALLAA": {},
-    "ALLAAwc": {},
-    "ALLAAxc": {'C'},
-    "POLAR": {'P', 'M', 'Y', 'V', 'F', 'L', 'I', 'A', 'C', 'W', 'G'},
-    "APOLAR": {'E', 'H', 'K', 'N', 'R', 'Q', 'D', 'S', 'T'},
+    "ALLAA": {'H', 'K', 'R', 'D', 'E', 'S', 'T', 'N', 'Q', 'A', 'V', 'L', 'I', 'M', 'F', 'Y', 'W', 'P', 'G', 'C'},
+    "ALLAAwc": {'H', 'K', 'R', 'D', 'E', 'S', 'T', 'N', 'Q', 'A', 'V', 'L', 'I', 'M', 'F', 'Y', 'W', 'P', 'G', 'C'},
+    "ALLAAxc": {'H', 'K', 'R', 'D', 'E', 'S', 'T', 'N', 'Q', 'A', 'V', 'L', 'I', 'M', 'F', 'Y', 'W', 'P', 'G'},
+    "POLAR": {'E', 'H', 'K', 'N', 'R', 'Q', 'D', 'S', 'T'},
+    "APOLAR": {'P', 'M', 'Y', 'V', 'F', 'L', 'I', 'A', 'C', 'W', 'G'},
 }
