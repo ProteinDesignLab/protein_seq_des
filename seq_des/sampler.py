@@ -11,6 +11,7 @@ import seq_des.util.pyrosetta_util as putil
 import seq_des.util.sampler_util as sampler_util
 import seq_des.util.canonicalize as canonicalize
 import seq_des.util.data as data
+import seq_des.util.resfile_util as resfile_util
 import common.atoms
 
 from pyrosetta.rosetta.protocols.simple_filters import (
@@ -329,23 +330,9 @@ class Sampler(object):
         else:
             self.chi_error = 0
 
-    def read_resfile(self):
-        # read resfile and return a dictionary of constraints for each residue id
-        constraints = {}
-        with open(self.resfile, "r") as f:
-            # iterate over the lines and extract arguments (residue id, commans)
-            for line in f:
-                args = line.split()
-                try:
-                    args[0] = int(args[0])
-                except ValueError:
-                    raise ValueError("Invalid resfile (first argument must be an integer)")
-                constraints[args[0]] = args[1]
-        return constraints
-
     def enforce_resfile(self, logits, idx):
         # enforce resfile constraints
-        constraints = self.read_resfile()
+        constraints = resfile_util.read_resfile(self.resfile)
         # iterate over all residues and check if they're to be constrained
         for i in idx:
             if i in constraints.keys():
