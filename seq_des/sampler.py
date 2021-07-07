@@ -340,7 +340,7 @@ class Sampler(object):
                 # set of amino acids to restrict in the tensor
                 aa_to_restrict = common.atoms.resfile_commands["ALLAAwc"] - common.atoms.resfile_commands[command]
                 for aa in aa_to_restrict:
-                    logits[i, common.atoms.aa_map_inv[aa]] = 0
+                    logits[i, common.atoms.aa_map_inv[aa]] = -np.inf
         return logits
 
     def enforce_constraints(self, logits, idx):
