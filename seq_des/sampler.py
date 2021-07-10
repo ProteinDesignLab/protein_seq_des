@@ -332,13 +332,17 @@ class Sampler(object):
 
     def enforce_resfile(self, logits, idx):
         # enforce resfile constraints
-        constraints = resfile_util.read_resfile(self.resfile)
+        constraints, header = resfile_util.read_resfile(self.resfile)
         # iterate over all residues and check if they're to be constrained
         for i in idx:
             if i in constraints.keys():
                 command = constraints[i]
                 # set of amino acids to restrict in the tensor
                 aa_to_restrict = common.atoms.resfile_commands["ALLAAwc"] - common.atoms.resfile_commands[command]
+                for aa in aa_to_restrict:
+                    logits[i, common.atoms.aa_map_inv[aa]] = -np.inf
+            elif header:
+                aa_to_restrict = common.atoms.resfile_commands["ALLAAwc"] - common.atoms.resfile_commands[header["DEFAULT"]]
                 for aa in aa_to_restrict:
                     logits[i, common.atoms.aa_map_inv[aa]] = -np.inf
         return logits
