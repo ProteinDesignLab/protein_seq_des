@@ -336,18 +336,19 @@ class Sampler(object):
         # iterate over all residues and check if they're to be constrained
         for i in idx:
             if i in constraints.keys():
-                command = constraints[i]
                 # set of amino acids to restrict in the tensor
-                aa_to_restrict = common.atoms.resfile_commands["ALLAAwc"] - common.atoms.resfile_commands[command]
+                aa_to_restrict = constraints[i]
                 for aa in aa_to_restrict:
                     logits[i, common.atoms.aa_map_inv[aa]] = -np.inf
             elif header:
-                aa_to_restrict = common.atoms.resfile_commands["ALLAAwc"] - common.atoms.resfile_commands[header["DEFAULT"]]
+                aa_to_restrict = header["DEFAULT"]
                 for aa in aa_to_restrict:
                     logits[i, common.atoms.aa_map_inv[aa]] = -np.inf
         return logits
 
     def enforce_constraints(self, logits, idx):
+        if self.resfile:
+            logits = self.enforce_resfile(logits, idx)
         # enforce idx-wise constraints
         if self.no_cys:
             logits = logits[..., :-1]
@@ -474,9 +475,6 @@ class Sampler(object):
     def sample(self, logits, idx):
         # sample residue from model conditional prob distribution at idx with current logits
         logits = self.enforce_constraints(logits, idx)
-        # updated logits if resfile is present
-        if self.resfile:
-            logits = self.enforce_resfile(logits, idx)
         dist = Categorical(logits=logits[idx])
         res_idx = dist.sample().cpu().data.numpy()
         idx_out = []
