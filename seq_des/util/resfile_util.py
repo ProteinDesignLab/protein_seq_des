@@ -39,8 +39,6 @@ def read_resfile(filename):
             else:
                 constraints[res_id] = check_for_commands(args, 1, 2)
 
-        print(constraints)
-
     return constraints, header
 
 def check_for_header(filename):
