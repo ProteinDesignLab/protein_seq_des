@@ -91,3 +91,28 @@ def check_for_commands(args, command_id, list_id):
         constraint = set(args[list_id].strip())
 
     return constraint
+
+def get_natro(filename):
+    """
+    provides a list of indecies whose input rotamers and identities need to be presevered (Native Rotamer - NATRO)
+
+    overrides the sampler.py's self.fixed_idx attribute with a list of the NATRO residues to be skipped in the 
+    self.get_blocks() function that picks sampling blocks
+
+    if ALL residues in the resfile are NATRO, the sampler.py's self.step() skips running the neural network for
+    amino acid prediction AND rotamer prediction
+    """
+    fixed_idx = set()
+    with open(filename, "r") as f:
+        lines = f.readlines()
+        for line in lines:
+            args = [arg.strip().upper() for arg in line.split(" ")]
+            if "NATRO" in args:
+                if args[1] == "-": # provided a range of NATRO residues
+                    assert isinstance(int(args[0]), int) and isinstance(int(args[2]), int), "incorrect range for resfile handling: {} - {}".format(args[0], args[2])
+                    fixed_idx.update(range(int(args[0]) - 1, int(args[2])))
+                else: # provided a single NATRO residue
+                    assert isinstance(int(args[0]), int), "incorrect argument in resfile handling"
+                    fixed_idx.add(int(args[0]) - 1)
+
+    return list(fixed_idx)

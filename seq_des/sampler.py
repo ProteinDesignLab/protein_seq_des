@@ -71,6 +71,10 @@ class Sampler(object):
             self.fixed_idx = sampler_util.get_idx(args.fixed_idx)
         else:
             self.fixed_idx = []
+        
+        # load resfile NATRO (skip designing/packing, just liked fixed_idx)
+        if self.resfile:
+            self.fixed_idx = resfile_util.get_natro(self.resfile)
 
         # load var idx if applicable
         if args.var_idx != "":
@@ -301,7 +305,9 @@ class Sampler(object):
             elif len(self.var_idx) > 0:
                 nodes = [n for n in nodes if n in self.var_idx]
             self.colors = sampler_util.color_nodes(self.graph, nodes)
-            self.n_blocks = sorted(list(set(self.colors.values())))[-1] + 1
+            self.n_blocks = 0
+            if self.colors: # check if there are any colored notes to get n-blocks (might be empty if running NATRO on all residues in resfile)
+                self.n_blocks = sorted(list(set(self.colors.values())))[-1] + 1
             self.blocks = {}
             for k in self.colors.keys():
                 if self.colors[k] not in self.blocks.keys():
@@ -518,8 +524,14 @@ class Sampler(object):
         self.anneal_start_temp = max(self.anneal_start_temp * self.step_rate, self.anneal_final_temp)
 
     def step(self):
+        # no blocks to sample (NATRO for all residues)
+        if self.n_blocks == 0:
+            self.step_anneal()
+            return
+
         # random idx selection, draw sample
         idx = self.blocks[np.random.choice(self.n_blocks)]
+        
         if not self.rotamer_repack:
             # sample new residue indices/ residues
             res, idx, res_idx = self.sample(self.logits, idx)
@@ -589,11 +601,15 @@ class Sampler(object):
             # eval all metrics
             self.eval_metrics(self.pose, self.res_label)
 
+            self.step_anneal()
+
+    def step_anneal(self):
+        # ending for step()
         if self.anneal:
             self.step_T()
-
+        
         self.iteration += 1
-
+        
         # reset blocks
-        if self.iteration % self.reset_block_rate == 0:
+        if self.reset_block_rate != 0 and (self.iteration % self.reset_block_rate == 0):
             self.get_blocks()
