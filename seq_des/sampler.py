@@ -63,19 +63,21 @@ class Sampler(object):
         self.step_rate = args.step_rate
         self.accept_prob = 1
 
-        self.resfile = args.resfile
-
         # load fixed idx if applicable
         if args.fixed_idx != "":
             # assert not self.symmetry, 'fixed idx not supported in symmetry mode'
             self.fixed_idx = sampler_util.get_idx(args.fixed_idx)
         else:
             self.fixed_idx = []
-        
-        # load resfile NATRO (skip designing/packing, just liked fixed_idx)
-        if self.resfile:
-            self.fixed_idx = resfile_util.get_natro(self.resfile)
 
+        # resfile restrictions handling (see util/resfile_util.py)
+        self.resfile = args.resfile
+        if self.resfile:
+            # load resfile NATRO (used to skip designing/packing at all)
+            self.fixed_idx = resfile_util.get_natro(self.resfile)
+            # load resfile commands (used to restrict amino acid probability distribution)
+            self.resfile = resfile_util.read_resfile(self.resfile)
+            
         # load var idx if applicable
         if args.var_idx != "":
             # assert not self.symmetry, 'var idx not supported in symmetry mode'
@@ -337,8 +339,13 @@ class Sampler(object):
             self.chi_error = 0
 
     def enforce_resfile(self, logits, idx):
-        # enforce resfile constraints
-        constraints, header = resfile_util.read_resfile(self.resfile)
+        """
+        enforces resfile constraints by setting logits to -np.inf (see PyTorch on Categorical distribution - returns normalized value)
+
+        logits - tensor where the columns are residue ids, rows are amino acid probabilities
+        idx - residue ids
+        """
+        constraints, header = self.resfile
         # iterate over all residues and check if they're to be constrained
         for i in idx:
             if i in constraints.keys():
@@ -346,7 +353,7 @@ class Sampler(object):
                 aa_to_restrict = constraints[i]
                 for aa in aa_to_restrict:
                     logits[i, common.atoms.aa_map_inv[aa]] = -np.inf
-            elif header:
+            elif header: # if not in the constraints, apply header (see util/resfile_util.py)
                 aa_to_restrict = header["DEFAULT"]
                 for aa in aa_to_restrict:
                     logits[i, common.atoms.aa_map_inv[aa]] = -np.inf
