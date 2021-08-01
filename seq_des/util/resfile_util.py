@@ -29,11 +29,12 @@ def read_resfile(filename):
         lines = f.readlines()
         for line in lines[start_id + 1:]:
             args = [arg.strip() for arg in line.split(" ")]
-            assert isinstance(int(args[0]), int), "the resfile residue id needs to be an integer"
+            is_integer(args[0]) # the res id needs to be an integer
             assert isinstance(args[1], str), "the resfile command needs to be a string"
             
             res_id = int(args[0]) - 1
             if args[1] == "-": # if given a range of residue ids (ex. 31 - 33 NOTAA)
+                is_integer(args[2]) # the res id needs to be an integer
                 for res_id in range(res_id, int(args[2])):
                     constraints[res_id] = check_for_commands(args, 3, 4)
             else:
@@ -108,11 +109,17 @@ def get_natro(filename):
         for line in lines:
             args = [arg.strip().upper() for arg in line.split(" ")]
             if "NATRO" in args:
+                is_integer(args[0])
                 if args[1] == "-": # provided a range of NATRO residues
-                    assert isinstance(int(args[0]), int) and isinstance(int(args[2]), int), "incorrect range for resfile handling: {} - {}".format(args[0], args[2])
+                    is_integer(args[2])
                     fixed_idx.update(range(int(args[0]) - 1, int(args[2])))
                 else: # provided a single NATRO residue
-                    assert isinstance(int(args[0]), int), "incorrect argument in resfile handling"
                     fixed_idx.add(int(args[0]) - 1)
 
     return list(fixed_idx)
+
+def is_integer(n):
+    try:
+        int(n)
+    except ValueError:
+        raise ValueError("Incorrect residue index in the resfile ", n)
