@@ -118,6 +118,26 @@ def get_natro(filename):
 
     return list(fixed_idx)
 
+def get_init_seq(resfile):
+    """
+    provides a dictionary of residues with single possible amino acids for initial sequencing (ex. 65 PIKAA C)
+
+    takes the resfile dictionary to extract all residues with only one amino acid possible (19/20 restricted),
+    to use in sampler.py's init_seq() under the pyrosetta_util.randomize_sequence()
+
+    helps avoid running the baseline model if the resfile already specifies particular starting sequences
+
+    returns a dictionary:
+    {65:'C', ...}
+    """
+    # get all residues with 19 amino acids restricted out of 20
+    single_residues = {res_id : restricted_aa for res_id, restricted_aa in resfile.items() if len(restricted_aa) == 19}
+
+    # update those residues to have the one amino acid not restricted
+    single_residues = {res_id : (common.atoms.resfile_commands["ALLAAwc"] - restricted_aa).pop() for res_id, restricted_aa in single_residues.items()}
+
+    return single_residues
+
 def is_integer(n):
     try:
         int(n)
