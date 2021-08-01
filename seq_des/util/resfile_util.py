@@ -1,3 +1,5 @@
+# developed by Damir Temir | github.com/dtemir | as a part of the RosettaCommons Summer Internship
+
 import common
 import re
 
