@@ -79,8 +79,10 @@ class Sampler(object):
             self.resfile = resfile_util.read_resfile(self.resfile)
             # get initial resfile sequence (used to initialize the sequence)
             self.init_seq_resfile = self.resfile[2]
-            print("RESFILE: ", self.resfile)
-            print("INIT_SEQ: ", self.init_seq_resfile)
+
+            # the initial sequence must be randomized (avoid running the baseline model)
+            if self.init_seq_resfile:
+                self.randomize = 0
             
         # load var idx if applicable
         if args.var_idx != "":
@@ -250,7 +252,6 @@ class Sampler(object):
                     var_idx=self.var_idx,
                     repack_rotamers=1,
                 )
-                print(self.pose)
             else:
                 assert False, "baseline model must be used for initializing rotamer repacking"
 
