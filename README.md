@@ -159,7 +159,7 @@ Note that the input PDB sequence and rotamers are considered 'ground-truth' for 
                         be designed/packed, all other side-chains will be
                         designed/packed. Cannot be specified if var_idx file given. 
                         Not supported with symmetry mode. 0-indexed 
-  --resfile		Enforce resfile constraints on particular residues. 0-indexed
+  --resfile		Enforce [resfile constraints](https://github.com/ProteinDesignLab/protein_seq_des/tree/master/seq_des/util) on particular residues. 0-indexed
 ```
 Sampling / optimization parameters
 ```
