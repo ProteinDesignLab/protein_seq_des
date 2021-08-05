@@ -1,0 +1,5 @@
+65 POLAR
+21 POLAR
+32 POLAR
+52 POLAR # previously APOLAR (V)
+79 POLAR # previously APOLAR (Y)
