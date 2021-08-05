@@ -11,6 +11,7 @@ import seq_des.util.pyrosetta_util as putil
 import seq_des.util.sampler_util as sampler_util
 import seq_des.util.canonicalize as canonicalize
 import seq_des.util.data as data
+import seq_des.util.resfile_util as resfile_util
 import common.atoms
 
 from pyrosetta.rosetta.protocols.simple_filters import (
@@ -69,6 +70,20 @@ class Sampler(object):
         else:
             self.fixed_idx = []
 
+        # resfile restrictions handling (see util/resfile_util.py)
+        self.resfile = args.resfile
+        if self.resfile:
+            # get resfile NATRO (used to skip designing/packing at all)
+            self.fixed_idx = resfile_util.get_natro(self.resfile)
+            # get resfile commands (used to restrict amino acid probability distribution)
+            self.resfile = resfile_util.read_resfile(self.resfile)
+            # get initial resfile sequence (used to initialize the sequence)
+            self.init_seq_resfile = self.resfile[2]
+
+            # the initial sequence must be randomized (avoid running the baseline model)
+            if self.init_seq_resfile:
+                self.randomize = 0
+            
         # load var idx if applicable
         if args.var_idx != "":
             # assert not self.symmetry, 'var idx not supported in symmetry mode'
@@ -172,9 +187,7 @@ class Sampler(object):
 
         # random/poly-alanine/poly-valine initialize sequence, pack rotamers
         self.pose = putil.get_pose(self.pdb)
-
         if self.randomize:
-
             if (not self.no_init_model) and not (self.ala or self.val):
                 # get features --> BB only
                 (
@@ -220,26 +233,27 @@ class Sampler(object):
                 res = [common.atoms.label_res_single_dict[k] for k in res_idx]
                 self.pose = self.set_rotamer(self.pose, res, idx, self.chi_1, self.chi_2, self.chi_3, self.chi_4, fixed_idx=self.fixed_idx, var_idx=self.var_idx)
 
-            # Randomize sequence/rotamers
+        # Randomize sequence/rotamers
+        else:
+            if not self.rotamer_repack:
+                random_seq = np.random.choice(20, size=len(self.pose))
+                if not self.ala and not self.val and self.symmetry:
+                    # random sequence must be symmetric
+                    random_seq = np.concatenate([random_seq[: self.n_k] for i in range(self.k)])
+                    random_seq = random_seq[: len(self.pose)]
+                self.pose, _ = putil.randomize_sequence(
+                    random_seq,
+                    self.pose,
+                    pack_radius=self.pack_radius,
+                    ala=self.ala,
+                    val=self.val,
+                    resfile_init_seq=self.init_seq_resfile,
+                    fixed_idx=self.fixed_idx,
+                    var_idx=self.var_idx,
+                    repack_rotamers=1,
+                )
             else:
-                if not self.rotamer_repack:
-                    random_seq = np.random.choice(20, size=len(self.pose))
-                    if not self.ala and not self.val and self.symmetry:
-                        # random sequence must be symmetric
-                        random_seq = np.concatenate([random_seq[: self.n_k] for i in range(self.k)])
-                        random_seq = random_seq[: len(self.pose)]
-                    self.pose, _ = putil.randomize_sequence(
-                        random_seq,
-                        self.pose,
-                        pack_radius=self.pack_radius,
-                        ala=self.ala,
-                        val=self.val,
-                        fixed_idx=self.fixed_idx,
-                        var_idx=self.var_idx,
-                        repack_rotamers=1,
-                    )
-                else:
-                    assert False, "baseline model must be used for initializing rotamer repacking"
+                assert False, "baseline model must be used for initializing rotamer repacking"
 
         # evaluate energy for starting structure/sequence
         (self.res_label, self.log_p_per_res, self.log_p_mean, self.logits, self.chi_feat, self.chi_angles, self.chi_mask,) = sampler_util.get_energy(
@@ -298,7 +312,9 @@ class Sampler(object):
             elif len(self.var_idx) > 0:
                 nodes = [n for n in nodes if n in self.var_idx]
             self.colors = sampler_util.color_nodes(self.graph, nodes)
-            self.n_blocks = sorted(list(set(self.colors.values())))[-1] + 1
+            self.n_blocks = 0
+            if self.colors: # check if there are any colored notes to get n-blocks (might be empty if running NATRO on all residues in resfile)
+                self.n_blocks = sorted(list(set(self.colors.values())))[-1] + 1
             self.blocks = {}
             for k in self.colors.keys():
                 if self.colors[k] not in self.blocks.keys():
@@ -327,7 +343,30 @@ class Sampler(object):
         else:
             self.chi_error = 0
 
+    def enforce_resfile(self, logits, idx):
+        """
+        enforces resfile constraints by setting logits to -np.inf (see PyTorch on Categorical distribution - returns normalized value)
+
+        logits - tensor where the columns are residue ids, rows are amino acid probabilities
+        idx - residue ids
+        """
+        constraints, header = self.resfile[0], self.resfile[1]
+        # iterate over all residues and check if they're to be constrained
+        for i in idx:
+            if i in constraints.keys():
+                # set of amino acids to restrict in the tensor
+                aa_to_restrict = constraints[i]
+                for aa in aa_to_restrict:
+                    logits[i, common.atoms.aa_map_inv[aa]] = -np.inf
+            elif header: # if not in the constraints, apply header (see util/resfile_util.py)
+                aa_to_restrict = header["DEFAULT"]
+                for aa in aa_to_restrict:
+                    logits[i, common.atoms.aa_map_inv[aa]] = -np.inf
+        return logits
+
     def enforce_constraints(self, logits, idx):
+        if self.resfile:
+            logits = self.enforce_resfile(logits, idx)
         # enforce idx-wise constraints
         if self.no_cys:
             logits = logits[..., :-1]
@@ -453,7 +492,7 @@ class Sampler(object):
 
     def sample(self, logits, idx):
         # sample residue from model conditional prob distribution at idx with current logits
-        logits = self.enforce_constraints(logits, idx) 
+        logits = self.enforce_constraints(logits, idx)
         dist = Categorical(logits=logits[idx])
         res_idx = dist.sample().cpu().data.numpy()
         idx_out = []
@@ -497,8 +536,14 @@ class Sampler(object):
         self.anneal_start_temp = max(self.anneal_start_temp * self.step_rate, self.anneal_final_temp)
 
     def step(self):
+        # no blocks to sample (NATRO for all residues)
+        if self.n_blocks == 0:
+            self.step_anneal()
+            return
+
         # random idx selection, draw sample
         idx = self.blocks[np.random.choice(self.n_blocks)]
+        
         if not self.rotamer_repack:
             # sample new residue indices/ residues
             res, idx, res_idx = self.sample(self.logits, idx)
@@ -568,11 +613,15 @@ class Sampler(object):
             # eval all metrics
             self.eval_metrics(self.pose, self.res_label)
 
+            self.step_anneal()
+
+    def step_anneal(self):
+        # ending for step()
         if self.anneal:
             self.step_T()
-
+        
         self.iteration += 1
-
+        
         # reset blocks
-        if self.iteration % self.reset_block_rate == 0:
+        if self.reset_block_rate != 0 and (self.iteration % self.reset_block_rate == 0):
             self.get_blocks()

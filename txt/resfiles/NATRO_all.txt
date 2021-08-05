@@ -1,0 +1,1 @@
+1 - 90 NATRO # set all residues in 3mx7_gt.pdb to NATIVE ROTAMERS (skips designing at all)

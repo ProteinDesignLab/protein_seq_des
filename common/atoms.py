@@ -261,3 +261,11 @@ label_res_single_dict = {
     18: "G",
     19: "C",
 }
+# resfile commands where values are amino acids allowed by that command 
+resfile_commands = {
+    "ALLAA": {'H', 'K', 'R', 'D', 'E', 'S', 'T', 'N', 'Q', 'A', 'V', 'L', 'I', 'M', 'F', 'Y', 'W', 'P', 'G', 'C'},
+    "ALLAAwc": {'H', 'K', 'R', 'D', 'E', 'S', 'T', 'N', 'Q', 'A', 'V', 'L', 'I', 'M', 'F', 'Y', 'W', 'P', 'G', 'C'},
+    "ALLAAxc": {'H', 'K', 'R', 'D', 'E', 'S', 'T', 'N', 'Q', 'A', 'V', 'L', 'I', 'M', 'F', 'Y', 'W', 'P', 'G'},
+    "POLAR": {'E', 'H', 'K', 'N', 'R', 'Q', 'D', 'S', 'T'},
+    "APOLAR": {'P', 'M', 'Y', 'V', 'F', 'L', 'I', 'A', 'C', 'W', 'G'},
+}
