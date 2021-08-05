@@ -1,6 +1,6 @@
 # Resfile Interface
 
-Author: Damir Temir
+Authors: Damir Temir, Christian Choe
 
 ## Overview
 
@@ -24,11 +24,6 @@ Example of a resfile:
 To use a resfile, create a new `.txt` where you specify all the flags. Then run:
 
     python3 run.py --pdb pdbs/3mx7_gt.pdb --resfile txt/resfiles/<name of a resfile>.txt
-
-If you wish to use the `TPIKAA` and `TNOTAA` commands to set up an initial sequence (and avoid running the baseline model),
-turn on the **randomize** mode:
-
-    python3 run.py --pdb pdbs/3mx7_gt.pdb --resfile txt/resfiles/<name of a resfile>.txt --randomize 0
 
 ## List of Functions
 
@@ -73,3 +68,36 @@ The header _cannot take_ these commands for the following reasons:
 |TPIKAA|Setting the particular residues in the initial sequence is a separate process. Please specify each amino acid for each residue in the body instead `5 TPIKAA C`|
 |TNOTAA|For the same reason as above. Please specify all amino acids to avoid in initializing for each residue instead `ex. 5 TNOTAA HKRDESTNQAVLIMFYWPG`|
 
+### Ranges
+
+You can specify the ranges for which the command should apply. For example:
+
+    1 - 90 NATRO # will preserve all residues from residue #1 to #90 (including #90)
+
+The ranges can be specified for _all_ body commands, but **cannot be specified in the header section**.
+
+### Initial Sequencing
+
+With the `TPIKAA` and `TNOTAA` commands we can initialize the sequence with particular amino acids.
+
+    1 TPIKAA C
+    2 TPIKAA T
+    3 TPIKAA Y
+    4 TNOTAA ACFGILMPVWYDEHKNQRS # will set res #4 to T since it's the only one not restricted
+    ...
+
+Will result in an initial sequence `CTYT...`
+
+**NOTE**: you can still specify other commands for those residues that will restrict them in the following designs using the conditional model and not the baseline model. 
+
+## Results
+
+An example of a designed all-beta structure using the **backbone [3mx7_gt.pdb](../../pdbs/3mx7_gt.pdb)** with the **[resfile](../../txt/resfiles/resfile_3mx7_gt_ex1.txt)**:
+
+![Example of an Internal Hydgrogen Bonding Network with a Resfile](../../imgs/internal_HBN_3mx7_gt.png)
+
+When the usual designed structure with all **hydrogen bonds visible** looks like this:
+
+![Example of a usual result where all Hydrogen Bonding Networks are external to the core](../../imgs/original_3mx7_gt.png)
+
+We can see that we are able to build **internal hydrogen bonding networks** by simply setting some internal residues to `POLAR`.
