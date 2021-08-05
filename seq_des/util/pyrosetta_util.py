@@ -29,7 +29,7 @@ def score_pose(pose):
     return scorefxn(pose)
 
 
-def randomize_sequence(new_seq, pose, pack_radius=5.0, fixed_idx=[], var_idx=[], ala=False, val=False, resfile=False, enforce=False, repack_rotamers=0):
+def randomize_sequence(new_seq, pose, pack_radius=5.0, fixed_idx=[], var_idx=[], ala=False, val=False, resfile_init_seq=False, enforce=False, repack_rotamers=0):
     for idx in range(pose.residues.__len__()):
         # do not mutate fixed indices / only mutate var indices
         if idx in fixed_idx:
@@ -57,9 +57,9 @@ def randomize_sequence(new_seq, pose, pack_radius=5.0, fixed_idx=[], var_idx=[],
 
         res_aa = common.atoms.aa_map[r]
         
-        # resfile hangling: ex. 5 PIKAA C means set the initial sequence at residue 5 to 'C'
-        if idx in resfile.keys():
-            res_aa = resfile[idx]
+        # resfile hangling: ex. 5 TPIKAA C means set the initial sequence at residue 5 to 'C'
+        if idx in resfile_init_seq.keys():
+            res_aa = resfile_init_seq[idx]
 
         pose = handle_disulfide(pose, idx)
         mutate_residue(pose, idx + 1, res_aa, pack_radius=pack_radius, repack_rotamers=repack_rotamers)

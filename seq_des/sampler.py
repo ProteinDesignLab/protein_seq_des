@@ -73,12 +73,14 @@ class Sampler(object):
         # resfile restrictions handling (see util/resfile_util.py)
         self.resfile = args.resfile
         if self.resfile:
-            # load resfile NATRO (used to skip designing/packing at all)
+            # get resfile NATRO (used to skip designing/packing at all)
             self.fixed_idx = resfile_util.get_natro(self.resfile)
-            # load resfile commands (used to restrict amino acid probability distribution)
+            # get resfile commands (used to restrict amino acid probability distribution)
             self.resfile = resfile_util.read_resfile(self.resfile)
-            # load initial resfile sequence (used to initialize the sequence)
-            self.init_seq_resfile = resfile_util.get_init_seq(self.resfile[0])
+            # get initial resfile sequence (used to initialize the sequence)
+            self.init_seq_resfile = self.resfile[2]
+            print("RESFILE: ", self.resfile)
+            print("INIT_SEQ: ", self.init_seq_resfile)
             
         # load var idx if applicable
         if args.var_idx != "":
@@ -243,11 +245,12 @@ class Sampler(object):
                     pack_radius=self.pack_radius,
                     ala=self.ala,
                     val=self.val,
-                    resfile=self.init_seq_resfile,
+                    resfile_init_seq=self.init_seq_resfile,
                     fixed_idx=self.fixed_idx,
                     var_idx=self.var_idx,
                     repack_rotamers=1,
                 )
+                print(self.pose)
             else:
                 assert False, "baseline model must be used for initializing rotamer repacking"
 
@@ -346,7 +349,7 @@ class Sampler(object):
         logits - tensor where the columns are residue ids, rows are amino acid probabilities
         idx - residue ids
         """
-        constraints, header = self.resfile
+        constraints, header = self.resfile[0], self.resfile[1]
         # iterate over all residues and check if they're to be constrained
         for i in idx:
             if i in constraints.keys():

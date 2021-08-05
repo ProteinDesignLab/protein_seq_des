@@ -16,6 +16,7 @@ def read_resfile(filename):
     54 ALLAAxc # allow all amino acids except cysteine at residue id 54 (53 in the tensor)
     30 POLAR # allow only polar amino acids at residue id 30 (29 in the tensor)
     31 - 33 NOTAA CFYG # disallow the specified amino acids at residue ids 31 to 33 (30 to 32 in the tensor) 
+    43 TPIKAA C # allow only cysteine when initializing the sequence (same logic for TNOTAA)
 
     results into a dictionary: 
     {64: {}, 53: {'C'}, 29: {'T', 'R', 'K', 'Q', 'D', 'E', 'S', 'N', 'H'},
@@ -23,9 +24,25 @@ def read_resfile(filename):
 
     plus it returns a header from check_for_header():
     {"DEFAULT": {}}
+
+    plus it returns a dictionary with the amino acids for initial sequence (NOTE: amino acids listed will NOT be used to initialize the sequence)
+    {42: 'C'}
     """
-    constraints = dict()
-    header, start_id = check_for_header(filename)
+    def place_constraints(constraint, init_seq):
+        """
+        places the constraints in the appropriate dicts 
+        -initial_seq for building the initial sequence with TPIKAA and TNOTAA
+        -constraints for restricting the conditional model with PIKAA, NOTAA, ALLAA, POLAR, etc.
+        """
+        if not init_seq:
+            constraints[res_id] = constraint
+        else:
+            initial_seq[res_id] = constraint
+
+    constraints = dict() # amino acids to restrict in the design
+    header, start_id = check_for_header(filename) # amino acids to use as default for those not specified in constraints
+    initial_seq = dict() # amino acids to use when initializing the sequence
+
     with open(filename, "r") as f:
         # iterate over the lines and extract arguments (residue id, command)
         lines = f.readlines()
@@ -38,11 +55,16 @@ def read_resfile(filename):
             if args[1] == "-": # if given a range of residue ids (ex. 31 - 33 NOTAA)
                 is_integer(args[2]) # the res id needs to be an integer
                 for res_id in range(res_id, int(args[2])):
-                    constraints[res_id] = check_for_commands(args, 3, 4)
-            else:
-                constraints[res_id] = check_for_commands(args, 1, 2)
+                    constraint, init_seq  = check_for_commands(args, 3, 4)
+                    place_constraints(constraint, init_seq)
+            else: # if not given a range (ex. 31 NOTAA CA)
+                constraint, init_seq = check_for_commands(args, 1, 2)
+                place_constraints(constraint, init_seq)
+    
+    # update the initial seq dictionary to only have one element per residue id (at random)
+    initial_seq = {res_id : (common.atoms.resfile_commands["ALLAAwc"] - restricted_aa).pop() for res_id, restricted_aa in initial_seq.items()}
 
-    return constraints, header
+    return constraints, header, initial_seq
 
 def check_for_header(filename):
     """
@@ -86,14 +108,18 @@ def check_for_commands(args, command_id, list_id):
     """
     constraint = set()
     command = args[command_id].upper()
+    init_seq = False # reflect if it's TPIKAA or TNOTAA
     if command in common.atoms.resfile_commands.keys():
         constraint = common.atoms.resfile_commands["ALLAAwc"] - common.atoms.resfile_commands[command]
-    elif command == "PIKAA": # allow only the specified amino acids
+    elif "PIKAA" in command: # allow only the specified amino acids
         constraint = common.atoms.resfile_commands["ALLAAwc"] - set(args[list_id].strip())
-    elif command == "NOTAA": # disallow only the specified amino acids
+    elif "NOTAA" in command: # disallow only the specified amino acids
         constraint = set(args[list_id].strip())
 
-    return constraint
+    if command == "TPIKAA" or command == "TNOTAA":
+        init_seq = True
+
+    return constraint, init_seq
 
 def get_natro(filename):
     """
@@ -119,26 +145,6 @@ def get_natro(filename):
                     fixed_idx.add(int(args[0]) - 1)
 
     return list(fixed_idx)
-
-def get_init_seq(resfile):
-    """
-    provides a dictionary of residues with single possible amino acids for initial sequencing (ex. 65 PIKAA C)
-
-    takes the resfile dictionary to extract all residues with only one amino acid possible (19/20 restricted),
-    to use in sampler.py's init_seq() under the pyrosetta_util.randomize_sequence()
-
-    helps avoid running the baseline model if the resfile already specifies particular starting sequences
-
-    returns a dictionary:
-    {65:'C', ...}
-    """
-    # get all residues with 19 amino acids restricted out of 20
-    single_residues = {res_id : restricted_aa for res_id, restricted_aa in resfile.items() if len(restricted_aa) == 19}
-
-    # update those residues to have the one amino acid not restricted
-    single_residues = {res_id : (common.atoms.resfile_commands["ALLAAwc"] - restricted_aa).pop() for res_id, restricted_aa in single_residues.items()}
-
-    return single_residues
 
 def is_integer(n):
     try:
