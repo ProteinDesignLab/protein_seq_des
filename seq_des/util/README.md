@@ -94,10 +94,14 @@ Will result in an initial sequence `CTYT...`
 
 An example of a designed all-beta structure using the **backbone [3mx7_gt.pdb](../../pdbs/3mx7_gt.pdb)** with the **[resfile](../../txt/resfiles/resfile_3mx7_gt_ex1.txt)**:
 
-![Example of an Internal Hydgrogen Bonding Network with a Resfile](../../imgs/internal_HBN_3mx7_gt.png)
+Before | After |
+:------:|:------|
+![Example of a usual result where all Hydrogen Bonding Networks are external to the core](../../imgs/ex3_results.png)|![Example of a hydrogen bonding network in the core](../../imgs/ex2_results.png)
 
-When the usual designed structure with all **hydrogen bonds visible** looks like this:
+An example of a designed all-alpha structure using the **backbone [1bkr_gt.pdb](../../pdbs/1bkr_gt.pdb)** with the **[resfile](../../txt/resfiles/resfile_1bkr_gt_ex6.txt)**:
 
-![Example of a usual result where all Hydrogen Bonding Networks are external to the core](../../imgs/original_3mx7_gt.png)
+Before | After |
+:------:|:------|
+![Example of a usual result where all Hydrogen Bonding Networks are external to the core](../../imgs/ex5_results.png)|![Example of a hydrogen bonding network in the core](../../imgs/ex6_results.png)
 
-We can see that we are able to build **internal hydrogen bonding networks** by simply setting some internal residues to `POLAR`.
+
