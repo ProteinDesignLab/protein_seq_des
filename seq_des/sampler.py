@@ -233,27 +233,27 @@ class Sampler(object):
                 res = [common.atoms.label_res_single_dict[k] for k in res_idx]
                 self.pose = self.set_rotamer(self.pose, res, idx, self.chi_1, self.chi_2, self.chi_3, self.chi_4, fixed_idx=self.fixed_idx, var_idx=self.var_idx)
 
-        # Randomize sequence/rotamers
-        else:
-            if not self.rotamer_repack:
-                random_seq = np.random.choice(20, size=len(self.pose))
-                if not self.ala and not self.val and self.symmetry:
-                    # random sequence must be symmetric
-                    random_seq = np.concatenate([random_seq[: self.n_k] for i in range(self.k)])
-                    random_seq = random_seq[: len(self.pose)]
-                self.pose, _ = putil.randomize_sequence(
-                    random_seq,
-                    self.pose,
-                    pack_radius=self.pack_radius,
-                    ala=self.ala,
-                    val=self.val,
-                    resfile_init_seq=self.init_seq_resfile,
-                    fixed_idx=self.fixed_idx,
-                    var_idx=self.var_idx,
-                    repack_rotamers=1,
-                )
+            # Randomize sequence/rotamers
             else:
-                assert False, "baseline model must be used for initializing rotamer repacking"
+                if not self.rotamer_repack:
+                    random_seq = np.random.choice(20, size=len(self.pose))
+                    if not self.ala and not self.val and self.symmetry:
+                        # random sequence must be symmetric
+                        random_seq = np.concatenate([random_seq[: self.n_k] for i in range(self.k)])
+                        random_seq = random_seq[: len(self.pose)]
+                    self.pose, _ = putil.randomize_sequence(
+                        random_seq,
+                        self.pose,
+                        pack_radius=self.pack_radius,
+                        ala=self.ala,
+                        val=self.val,
+                        resfile_init_seq=self.init_seq_resfile,
+                        fixed_idx=self.fixed_idx,
+                        var_idx=self.var_idx,
+                        repack_rotamers=1,
+                    )
+                else:
+                    assert False, "baseline model must be used for initializing rotamer repacking"
 
         # evaluate energy for starting structure/sequence
         (self.res_label, self.log_p_per_res, self.log_p_mean, self.logits, self.chi_feat, self.chi_angles, self.chi_mask,) = sampler_util.get_energy(
