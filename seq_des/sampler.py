@@ -250,10 +250,9 @@ class Sampler(object):
                         resfile_init_seq=self.init_seq_resfile,
                         fixed_idx=self.fixed_idx,
                         var_idx=self.var_idx,
-                        repack_rotamers=1,
-                    )
-                    else:
-                        assert False, "baseline model must be used for initializing rotamer repacking"
+                        repack_rotamers=1,)
+                else:
+                    assert False, "baseline model must be used for initializing rotamer repacking"
 
         # evaluate energy for starting structure/sequence
         (self.res_label, self.log_p_per_res, self.log_p_mean, self.logits, self.chi_feat, self.chi_angles, self.chi_mask,) = sampler_util.get_energy(
