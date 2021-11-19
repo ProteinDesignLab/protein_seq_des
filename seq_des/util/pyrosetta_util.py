@@ -24,10 +24,8 @@ def get_seq_delta(s1, s2):
             count += 1
     return count
 
-
 def score_pose(pose):
     return scorefxn(pose)
-
 
 def randomize_sequence(new_seq, pose, pack_radius=5.0, fixed_idx=[], var_idx=[], ala=False, val=False, resfile_init_seq=False, enforce=False, repack_rotamers=0):
     for idx in range(pose.residues.__len__()):

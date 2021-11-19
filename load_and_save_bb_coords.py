@@ -21,7 +21,6 @@ resource.setrlimit(resource.RLIMIT_NOFILE, (2048, rlimit[1]))
 
 """ script to load PDB coords, canonicalize, save """
 
-
 def main():
 
     manager = common.run_manager.RunManager()

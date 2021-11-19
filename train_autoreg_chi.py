@@ -32,6 +32,7 @@ def test(model, gen, dataloader, criterion, chi_1_criterion, chi_2_criterion, ch
     model = model.eval()
     gen = iter(dataloader)
     losses, avg_acc, avg_top_k_acc, avg_coarse_acc, avg_polar_acc, avg_chi_1_acc, avg_chi_2_acc, avg_chi_3_acc, avg_chi_4_acc, avg_chi_1_loss, avg_chi_2_loss, avg_chi_3_loss, avg_chi_4_loss = ([] for i in range(13))
+    
     with torch.no_grad():
 
         for i in tqdm(range(n_iters), desc=desc):
@@ -167,6 +168,7 @@ def main():
     # set up model
     model = models.seqPred(nic=len(common.atoms.atoms) + 1 + 21, nf=args.nf, momentum=0.01)
     model.apply(models.init_ortho_weights)
+    
     if use_cuda:
         model.cuda()
     else:
