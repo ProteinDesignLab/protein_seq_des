@@ -356,11 +356,11 @@ class Sampler(object):
                 # set of amino acids to restrict in the tensor
                 aa_to_restrict = constraints[i]
                 for aa in aa_to_restrict:
-                    logits[i, common.atoms.aa_map_inv[aa]] = -np.inf
+                    logits[i, common.atoms.aa_map_inv[aa]] = -99999
             elif header: # if not in the constraints, apply header (see util/resfile_util.py)
                 aa_to_restrict = header["DEFAULT"]
                 for aa in aa_to_restrict:
-                    logits[i, common.atoms.aa_map_inv[aa]] = -np.inf
+                    logits[i, common.atoms.aa_map_inv[aa]] = -99999
         return logits
 
     def enforce_constraints(self, logits, idx):
