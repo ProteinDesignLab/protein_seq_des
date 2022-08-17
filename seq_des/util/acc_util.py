@@ -107,6 +107,7 @@ def get_top_k_acc(output, target, k=3, ignore_idx=None):
         correct = pred.eq(target.view(1, -1).expand_as(pred))
 
         res = []
+        correct = correct.contiguous()
         correct_k = correct[:k].view(-1).float().sum(0, keepdim=True)
         #res.append(correct_k.mul_(100.0 / batch_size))
         return correct_k.mul_(1.0 / batch_size).item()
