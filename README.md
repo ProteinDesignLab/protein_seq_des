@@ -25,7 +25,7 @@ See [here](https://github.com/nanand2/protein_seq_des/blob/master/SETUP.md) for 
 If you'd like to use the pre-trained models to run design, jump to [[this section]](#running-design)
 
 ## Generating data
-Data is available [here](https://console.cloud.google.com/storage/browser/seq-des-data) on GCP. Note you will need to authenticate to access the data and link a billing account as well to pay for the download.
+(Update Aug 2022, data is currently not available on GCP but will be made available again, free of charge, soon. The txt files that the model was trained on are available in the txt folder in this repo). Data is available [here](https://console.cloud.google.com/storage/browser/seq-des-data) on GCP. Note you will need to authenticate to access the data and link a billing account as well to pay for the download.
 
 If you'd like to generate the dataset or change the underlying data run the following commands.
 
