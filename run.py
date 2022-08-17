@@ -141,7 +141,7 @@ def main():
             log_metrics(args=args, log=log, iteration=i, design_sampler=design_sampler)
            
             # save log_p_means and rosettas
-            logmeans.append(design_sampler.log_p_mean)
+            logmeans.append(design_sampler.log_p_mean.item())
             rosettas.append(design_sampler.rosetta_energy)
         
             if design_sampler.log_p_mean < best_energy:
