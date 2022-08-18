@@ -25,7 +25,7 @@ See [here](https://github.com/nanand2/protein_seq_des/blob/master/SETUP.md) for 
 If you'd like to use the pre-trained models to run design, jump to [[this section]](#running-design)
 
 ## Generating data
-(Update Aug 2022, data is currently not available on GCP but will be made available again, free of charge, soon. The txt files that the model was trained on are available in the txt folder in this repo). Data is available [here](https://console.cloud.google.com/storage/browser/seq-des-data) on GCP. Note you will need to authenticate to access the data and link a billing account as well to pay for the download.
+Data is available [here](https://drive.google.com/drive/folders/1MD-tu32SoYtZGag04HwntuxcuOnYPDXs). See the README in the drive for more information about the uploaded files. For the files used to generate the coordinates linked about, see the .txt files with the domain IDs (see data/train_domains_s95.txt and data/test_domain_s95.txt). These will be the inputs to regenerate the dataset. If you don't have PDB files downloaded, the script will download those and save it to pdb_dir.
 
 If you'd like to generate the dataset or change the underlying data run the following commands.
 
@@ -38,9 +38,6 @@ To load and save coordinates for the main model:
 ```
 python load_and_save_coords.py --save_dir PATH_TO_SAVE_DATA --pdb_dir PATH_TO_PDB_FILES --log_dir PATH_TO_LOG_DIR --txt PATH_TO_DOMAIN_TXT_FILE
 ```
-
-Inputs to the data generation script are .txt files with the domain IDs (see data/train_domains_s95.txt and data/test_domain_s95.txt). If you don't have PDB files downloaded, the script will download those and save it to pdb_dir.
-
 
 ## Training the models
 
