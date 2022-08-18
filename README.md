@@ -25,7 +25,7 @@ See [here](https://github.com/nanand2/protein_seq_des/blob/master/SETUP.md) for 
 If you'd like to use the pre-trained models to run design, jump to [[this section]](#running-design)
 
 ## Generating data
-Data is available [here](https://drive.google.com/drive/folders/1MD-tu32SoYtZGag04HwntuxcuOnYPDXs). See the README in the drive for more information about the uploaded files. For the files used to generate the coordinates linked about, see the .txt files with the domain IDs (see data/train_domains_s95.txt and data/test_domain_s95.txt). These will be the inputs to regenerate the dataset. If you don't have PDB files downloaded, the script will download those and save it to pdb_dir.
+Data is available [here](https://drive.google.com/drive/folders/1MD-tu32SoYtZGag04HwntuxcuOnYPDXs). See the README in the drive for more information about the uploaded files. For the files used to generate the above coordinates, see the .txt files with the domain IDs (see data/train_domains_s95.txt and data/test_domain_s95.txt). These will be the inputs to regenerate the dataset. If you don't have PDB files downloaded, the script will download those and save it to pdb_dir.
 
 If you'd like to generate the dataset or change the underlying data run the following commands.
 
