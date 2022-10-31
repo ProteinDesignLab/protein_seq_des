@@ -127,9 +127,9 @@ def main():
     design_sampler.pose.dump_pdb(log.log_path + "/" + "curr_0_%s.pdb" % (log.ts))
 
     # save trajectories for logmeans and rosettas
-    logmeans = []
-    rosettas =[]
-    
+    logmeans = np.zeros(int(args.n_iters))
+    rosettas = np.zeros(int(args.n_iters))
+
     # run design
     with torch.no_grad():
         for i in tqdm(range(1, int(args.n_iters)), desc='running design'):
@@ -139,10 +139,10 @@ def main():
 
             # logging
             log_metrics(args=args, log=log, iteration=i, design_sampler=design_sampler)
-           
+            
             # save log_p_means and rosettas
-            logmeans.append(design_sampler.log_p_mean.item())
-            rosettas.append(design_sampler.rosetta_energy)
+            logmeans[i] = design_sampler.log_p_mean
+            rosettas[i] = design_sampler.rosetta_energy
         
             if design_sampler.log_p_mean < best_energy:
                 design_sampler.pose.dump_pdb(log.log_path + "/" + "curr_best_log_p_%s.pdb" % log.ts)
