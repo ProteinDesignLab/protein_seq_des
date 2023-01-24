@@ -46,8 +46,9 @@ class RunManager(object):
         self.parser.add_argument("--data_dir", type=str, default="/data/simdev_2tb/protein/sequence_design/data/coords")
         self.parser.add_argument("--pdb_dir", type=str, default="/data/drive2tb/protein/pdb")
         self.parser.add_argument("--save_dir", type=str, default="./coords")
-
+        
         # design inputs
+        self.parser.add_argument("--file_dir", type=str, default="run", help="folder to store files (must be specified")
         self.parser.add_argument("--pdb", type=str, default="pdbs/tim10.pdb", help="Input PDB")
         self.parser.add_argument(
             "--model_list",
