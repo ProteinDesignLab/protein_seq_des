@@ -124,7 +124,7 @@ def main():
 
     # initialize design_sampler sequence with baseline model prediction or random/poly-alanine/poly-valine initial sequence, save initial model
     design_sampler.init_seq()
-    design_sampler.pose.dump_pdb(log.log_path + "/" + "curr_0_%s.pdb" % (log.ts))
+    design_sampler.pose.dump_pdb(log.log_path + "/" + args.file_dir + "/" + "curr_0.pdb")
 
     # save trajectories for logmeans and rosettas
     logmeans = np.zeros(int(args.n_iters))
@@ -145,24 +145,24 @@ def main():
             rosettas[i] = design_sampler.rosetta_energy
         
             if design_sampler.log_p_mean < best_energy:
-                design_sampler.pose.dump_pdb(log.log_path + "/" + "curr_best_log_p_%s.pdb" % log.ts)
+                design_sampler.pose.dump_pdb(log.log_path + "/" + args.file_dir + "/" + "curr_best_log_p_%s.pdb" % log.ts)
                 best_energy = design_sampler.log_p_mean
 
             if design_sampler.rosetta_energy < best_rosetta_energy:
-                design_sampler.pose.dump_pdb(log.log_path + "/" + "curr_best_rosetta_energy_%s.pdb" % log.ts)
+                design_sampler.pose.dump_pdb(log.log_path + "/" + args.file_dir + "/" + "curr_best_rosetta_energy_%s.pdb" % log.ts)
                 best_rosetta_energy = design_sampler.rosetta_energy
 
             # save intermediate models -- comment out if desired
             if (i==1) or (i % args.save_rate == 0) or (i == args.n_iters - 1):
-                design_sampler.pose.dump_pdb(log.log_path + "/" + "curr_%s_%s.pdb" % (i, log.ts))
+                design_sampler.pose.dump_pdb(log.log_path + "/" + args.file_dir + "/" + "curr_%s_%s.pdb" % (i, log.ts))
 
             log.advance_iteration()
 
     # save final model
-    design_sampler.pose.dump_pdb(log.log_path + "/" + "curr_final.pdb")
+    design_sampler.pose.dump_pdb(log.log_path + "/" + args.file_dir + "/" + "curr_final.pdb")
     
-    np.savetxt('{}/logmeans.txt'.format(log.log_path),logmeans, delimiter=',')
-    np.savetxt('{}/rosetta_energy.txt'.format(log.log_path),rosettas, delimiter=',')
+    np.savetxt('{}/{}/logmeans.txt'.format(log.log_path, args.file_dir),logmeans, delimiter=',')
+    np.savetxt('{}/{}/rosetta_energy.txt'.format(log.log_path, args.file_dir),rosettas, delimiter=',')
 
 if __name__ == "__main__":
     main()
