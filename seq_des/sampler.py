@@ -377,6 +377,8 @@ class Sampler(object):
                     logits[i, 18] = torch.min(logits[i])
             if self.no_met:
                 logits[i, 13] = torch.min(logits[i])
+            if self.no_cys:
+                logits[i, 19] = torch.min(logits[i])
         if self.symmetry:
             # average logits across all symmetry postions
             for i in idx:
